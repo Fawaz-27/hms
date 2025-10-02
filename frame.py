@@ -28,4 +28,4 @@ def register_patient():
   cur.execute("select id,name,dob,gender,email from users where email='{}'".format(email))
   data=cur.fetchall()
   header=[i[0] for i in cur.description]
-  print(tabulate(data,headers=header,tablefmt='pretty'))  
+  print(tabulate(data,headers=header,tablefmt='pretty'))
