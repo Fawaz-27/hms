@@ -31,4 +31,10 @@ def register_patient():
   print(tabulate(data,headers=header,tablefmt='pretty'))  
 
 def register_admin():
-  pass
+  pwd={'doctor','receptionist','admin'}
+  entry=getpass('Enter the code: ')
+  if entry not in pwd:
+    print("wrong code..")
+  
+
+  
