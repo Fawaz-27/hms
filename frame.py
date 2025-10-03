@@ -7,25 +7,65 @@ conn=connect(host='localhost',user='root',passwd='Fawaz@33448113',database='hosp
 cur=conn.cursor()
 
 cur.execute("create table if not exists users (id int auto_increment primary key,\
-            name varchar(30) not null,dob date not null,gender enum('f','m') not null,\
-            email varchar(100) unique not null,pwd varchar(20) not null,type enum('p','d','a','r') default 'p' )")
+            name varchar(30) not null, email varchar(100) unique not null,pwd varchar(20) not null,\
+            type enum('patient','doctor','admin') )")
 
-def register_patient():
-  valid=False
-  while not valid:
-    name=input('enter your name: ')
-    dob=input('enter your date of birth(yyyy-mm-dd): ')
-    gender=input('enter your gender (m,f): ')
-    email=input('Enter your email address: ')
-    pwd=getpass('enter a password for your acc : ')
-    if name and dob and gender and email and pwd :
-      valid=True
-    else:
-      print('invalid value in some field...pls try again')
+cur.execute("create table if not exists patients (p_id int auto_increment primary key, user_id int ,\
+            gender varchar(20),address varchar(200),age int,foreign key(user_id) references users(id) )")
 
-  cur.execute("insert into users (name,dob,gender,email,pwd) values (%s,%s,%s,%s,%s)",(name,dob,gender,email,pwd))
+cur.execute("create table if not exists doctors (d_id int auto_increment primary key, user_id int,\
+            specialization varchar(100),phone varchar(15),foreign key(user_id) references users(id))")
+
+def create_user():
+  role = input("Enter role (patient/doctor/admin): ").lower()
+
+  if role not in ("patient", "doctor", "admin"):
+    print("Invalid role!")
+    return
+  name = input("name: ")
+  password = getpass("Password: hidden ")
+  email=input("email address: ")
+
+
+  cur.execute("INSERT INTO users (name,email, pwd, type) VALUES (%s, %s, %s,%s)", 
+                       (name,email, password, role))
   conn.commit()
-  cur.execute("select id,name,dob,gender,email from users where email='{}'".format(email))
-  data=cur.fetchall()
-  header=[i[0] for i in cur.description]
-  print(tabulate(data,headers=header,tablefmt='pretty'))
+  user_id = cur.lastrowid 
+
+  if role == "patient":
+    age = int(input("Age: "))
+    gender = input("Gender (M/F): ")      
+    address = input("Address: ")
+    cur.execute("INSERT INTO patients (user_id, gender, address, age) VALUES (%s, %s, %s, %s)", (user_id, gender,address,age))
+    conn.commit()
+
+    cur.execute("select a.id,a.name,b.age,b.gender,a.email from users a  \
+                join patients b on a.id=b.user_id\
+                where user_id= %s",(user_id,))
+    data=cur.fetchall()
+    header=[i[0] for i in cur.description]
+    print(tabulate(data,headers=header,tablefmt='pretty'))
+
+  elif role== "doctor" :
+    specialization = input("Specialization: ")
+    phone = input("Phone: ")
+    cur.execute("INSERT INTO doctors (user_id, specialization, phone) VALUES (%s, %s, %s) ", (user_id, specialization, phone))      
+    conn.commit()
+      
+    cur.execute("select a.id,a.name,b.specialization,b.phone,a.email from users a \
+                join doctors b on a.id=b.user_id \
+                where user_id= %s",(user_id,))
+    data=cur.fetchall()
+    header=[i[0] for i in cur.description]
+    print(tabulate(data,headers=header,tablefmt='pretty'))  
+
+  elif role == "admin":
+    secret = getpass("Enter admin creation key: *ENCRYPTED* ")
+    if secret != "hms@admin":
+      print("Invalid admin key. Rolling back...")
+      cur.execute("DELETE FROM users WHERE user_id = %s", (user_id,))
+      conn.commit()
+      return
+    print(f'''admin succesfully created...
+    user_id-{user_id} name-{name}''')
+create_user()
