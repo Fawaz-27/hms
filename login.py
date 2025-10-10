@@ -1,4 +1,4 @@
-from mysql.connector import connect, Error
+from mysql.connector import connect
 from tabulate import tabulate
 from getpass import getpass
 
