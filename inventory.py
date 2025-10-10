@@ -20,7 +20,7 @@ def login():
         return None, None
     return data[0], data[1]
 
-def inventory_menu(role):   
+def inventory_menu(role, user_id):
     print("\n Inventory Management Menu ")
     if role == 'a':
         print("\n 1. Add Item \n 2. View Inventory \n 3. Exit")
