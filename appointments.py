@@ -1,5 +1,6 @@
 from mysql.connector import connect,Error
 from tabulate import tabulate
+from datetime import datetime
 
 try:
   conn=connect(host='localhost',user='root',passwd='Fawaz@33448113',database='hospital')
@@ -12,20 +13,30 @@ try:
                 FORIEGN KEY (p_id) references patients(p_id)
                 FORIEGN KEY (d_id) referneces doctors(d_id)''')
 
-    def book_appointment(user):
-      cur.execute('SELECT d_id as doctor_id ,specialization from doctors')
+    def book_appointment(user_id):
+      spec = input("Please enter the doctor's specialization you want to book an appointment with : ")
+      cur.execute('''select d_id as doctor_id, specialization, name from doctors join users on doctors.user_id = users.id
+                  where specialization = %s''', (spec,))
       header = [i[0] for i in cur.description]
-      data=cur.fetchall()
-      print(tabulate(data, headers=header, tablefmt='pretty'))
-      doc_id=int(input('enter the doctor id for appointment.'))
-      date=input("Enter date of appointment (YYYY-MM-DD): ")
-      try:
-        cur.execute("INSERT INTO appointments(u_id,d_id,date) VALUES (%s,%s,%s)",(user,doc_id,date))
-      except Error as e:
-        print('invalid doctor id or date format',e)
+      data = cur.fetchall()
+      if not data:
+        print("No doctors found with that specialization!")
         return
-      print('appointment have been added,pls check later for updates')
-      conn.commit()
+      print(tabulate(data, headers = header, tablefmt = 'pretty'))
+      doc_id = int(input("Enter the doctor ID you want to book an appointment with : "))
+      if doc_id not in [i[0] for i in data]:
+        print("Invalid doctor ID!")
+        return
+      try:
+        date_str = input("Enter date for appointment (YYYY-MM-DD): ")
+        date = datetime.strptime(date_str, "%Y-%m-%d").date()
+        print("Valid date:", date)
+        cur.execute('INSERT INTO appointments (u_id, u_id, date) VALUES (%s, %s, %s)',(user_id, doc_id, date))
+        conn.commit()
+      except ValueError:
+        print("Invalid date! Please use YYYY-MM-DD format.")
+        return
+      print("Appointment book request submitted. Please check back later.")
       
     def schedule_appointments(user):
       cur.execute("SELECT u_id as patient_id,date from appointments where d_id=%s and status='waiting",(user,))
@@ -33,8 +44,8 @@ try:
       data=cur.fetchall()
       print(tabulate(data, headers=header, tablefmt='pretty'))
       pat_id=int(input("enter patient id : "))
-      ch=input('''1)schedule
-                   2)remove''').lower()
+      ch=input('''1) schedule
+                  2) remove''').lower()
       if ch == '1' or ch=='schedule':
         time=input("Enter time for appointment (HH:MM): ")
         try:
