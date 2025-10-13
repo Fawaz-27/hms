@@ -8,7 +8,7 @@ try:
   cur=conn.cursor()
   try:
     cur.execute(''' CREATE TABLE IF NOT EXISTS appointments 
-                (a_id int auto_increment primary key,u_id int,d_id int
+                (a_id int auto_increment primary key,p_id int,d_id int
                 date date,time time,status enum('waiting','scheduled') default 'waiting')
                 FORIEGN KEY (p_id) references patients(p_id)
                 FORIEGN KEY (d_id) referneces doctors(d_id)''')
@@ -31,7 +31,7 @@ try:
         date_str = input("Enter date for appointment (YYYY-MM-DD): ")
         date = datetime.strptime(date_str, "%Y-%m-%d").date()
         print("Valid date:", date)
-        cur.execute('INSERT INTO appointments (u_id, u_id, date) VALUES (%s, %s, %s)',(user_id, doc_id, date))
+        cur.execute('INSERT INTO appointments (p_id, d_id, date) VALUES (%s, %s, %s)',(user_id, doc_id, date))
         conn.commit()
       except ValueError:
         print("Invalid date! Please use YYYY-MM-DD format.")

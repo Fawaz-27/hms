@@ -12,7 +12,7 @@ try:
               user_id INT, gender VARCHAR(20), address VARCHAR(200), age INT,
               FOREIGN KEY (user_id) REFERENCES users(id))""")
   cur.execute("""CREATE TABLE IF NOT EXISTS doctors (d_id INT AUTO_INCREMENT PRIMARY KEY,
-              user_id INT, specialization VARCHAR(100), phone VARCHAR(15),
+              user_id INT, specialization VARCHAR(100), phone VARCHAR(15),con_fee INT
               FOREIGN KEY (user_id) REFERENCES users(id))""")
 
   def create_user():
