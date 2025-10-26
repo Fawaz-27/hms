@@ -7,11 +7,12 @@ try:
 
   cur=conn.cursor()
   try:
-    cur.execute(''' CREATE TABLE IF NOT EXISTS appointments 
-                (a_id int auto_increment primary key,p_id int,d_id int
-                date date,time time,status enum('waiting','scheduled') default 'waiting')
-                FORIEGN KEY (p_id) references patients(p_id)
-                FORIEGN KEY (d_id) referneces doctors(d_id)''')
+    cur.execute('''CREATE TABLE IF NOT EXISTS appointments (
+                a_id INT AUTO_INCREMENT PRIMARY KEY, p_id INT, d_id INT,
+                date DATE,time TIME,status ENUM('waiting','scheduled') DEFAULT 'waiting',
+                FOREIGN KEY (p_id) REFERENCES patients(p_id),
+                FOREIGN KEY (d_id) REFERENCES doctors(d_id)
+                )''')
 
     def book_appointment(user_id):
       spec = input("Please enter the doctor's specialization you want to book an appointment with : ")
@@ -39,7 +40,7 @@ try:
       print("Appointment book request submitted. Please check back later.")
       
     def schedule_appointments(user):
-      cur.execute("SELECT u_id as patient_id,date from appointments where d_id=%s and status='waiting",(user,))
+      cur.execute("SELECT p_id as patient_id, date, a_id FROM appointments where d_id=%s and status='waiting'",(user,))
       header = [i[0] for i in cur.description]
       data=cur.fetchall()
       print(tabulate(data, headers=header, tablefmt='pretty'))
@@ -51,7 +52,7 @@ try:
         try:
           cur.execute("update appointments set time=%s,status='scheduled' where p_id=%s",(time,pat_id))
         except Error as e:
-          print('invallid patient id or time format')
+          print('invalid patient id or time format:', e)
           return 
       elif ch=='2' or ch=='remove':
         cur.execute('delete from appointments where p_id=%s',(pat_id,))
@@ -60,7 +61,7 @@ try:
       conn.commit()
 
     def check_appointments(user):
-      cur.execute("SELECT a_id,date,time from appointments where u_id =%s and status='scheduled'",(user,))
+      cur.execute("SELECT a_id,date,time from appointments where p_id =%s and status='scheduled'",(user,))
       header = [i[0] for i in cur.description]
       data=cur.fetchall()
       if data is None:

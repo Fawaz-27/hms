@@ -1,5 +1,6 @@
 from mysql.connector import connect,Error
 from tabulate import tabulate
+from datetime import date, datetime
 
 
 try:
@@ -7,26 +8,33 @@ try:
 
   cur=conn.cursor()
   try:
-    cur.execute(''' CREATE TABLE IF NOT EXISTS billing 
-                (bill_id int auto_increment primary key,p_id int,d_id int,total_amt int,
-                days int,room int,test int,date date default curdate(),
-                time time default curtime(),status enum('pending','paid') default 'pending')
-                FORIEGN KEY (p_id) references patients(p_id)
-                FORIEGN KEY (d_id) referneces doctors(d_id)''')
-    
+    cur.execute('''CREATE TABLE IF NOT EXISTS billing (
+        bill_id INT AUTO_INCREMENT PRIMARY KEY,
+        p_id INT, d_id INT, total_amt INT,
+        days INT, room INT, test INT,
+        bill_date DATE,
+        bill_time TIME,
+        status ENUM('pending','paid') DEFAULT 'pending',
+        FOREIGN KEY (p_id) REFERENCES patients(p_id),
+        FOREIGN KEY (d_id) REFERENCES doctors(d_id)
+        )''')
+
     def generate_bill(user):
       pat_id=int(input("enter patient id: "))
       stay_days=int(input('enter no of days stayed: '))
       room_fee=int(input('enter room fee: '))
       cur.execute("select con_fee from doctors where d_id=%s",(user,))
-      consul_fee=cur.fetchone[0]
-      test_fee=None#for now
-      total_amt=stay_days*room_fee + consul_fee + test_fee
+      row = cur.fetchone()
+      consul_fee = row[0] if row else 0
+      test_fee = 0  # for now
+      total_amt = stay_days * room_fee + consul_fee + test_fee
+      bill_date = date.today()
+      bill_time = datetime.now().time()
 
-      cur.execute('''insert into billing (p_id,d_id,total_amt,days,room,test) 
-                  values (%s,%s,%s,%s,%s,%s)''',(pat_id,user,total_amt,stay_days,room_fee,test_fee))
+      cur.execute('''insert into billing (p_id,d_id,total_amt,days,room,test,bill_date,bill_time) 
+                  values (%s,%s,%s,%s,%s,%s,%s,%s)''',(pat_id,user,total_amt,stay_days,room_fee,test_fee,bill_date,bill_time))
       conn.commit()
-      
+
     def view_bill(user):
       cur.execute("select * from billing where p_id=%s",(user,))
       header = [i[0] for i in cur.description]
@@ -48,7 +56,6 @@ try:
         print("bill paid successfully.\namt due=0")
       else:
         print(f"amt due={sum}")
-      
   except Error as e:
     print(f"Database error: {e}")
 except Error as e:
