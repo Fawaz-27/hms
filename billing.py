@@ -26,7 +26,11 @@ try:
       cur.execute("select con_fee from doctors where d_id=%s",(user,))
       row = cur.fetchone()
       consul_fee = row[0] if row else 0
-      test_fee = 0  # for now
+      cur.execute('''SELECT SUM(t.test_cost)
+                FROM orders o JOIN tests t ON o.test_id = t.test_id
+                where o.p_id = %s''', (user,))
+      row = cur.fetchone()
+      test_fee =  row[0] if row else 0
       total_amt = stay_days * room_fee + consul_fee + test_fee
       bill_date = date.today()
       bill_time = datetime.now().time()

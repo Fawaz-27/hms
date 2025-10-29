@@ -16,10 +16,12 @@ try:
       return
     elif pwd == cur.fetchone()[0]:
       cur.execute("SELECT type from users where id=%s",(user,))
-      return cur.fetchone()[0]
+      return cur.fetchone()[0],user
     else:
       print('incorrect pwd')
       return 
+  def update():
+    pass
   
 except Error as e:
   print(f"Connection error: {e}")

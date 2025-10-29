@@ -16,14 +16,18 @@ try:
       frame.create_user()
     
     elif ch.lower()=='2' or ch.lower() =='login':
-      role=login.login()
+      role,uid=login.login()
 
       if role=='patient':
-        menu.patient_menu()
+        cur.execute("select p_id from patients where user_id=%s",(uid,))
+        p_id=cur.fetchone()[0]
+        menu.patient_menu(p_id)
       elif role=='doctor':
-        menu.doctor_menu()
+        cur.execute("select d_id from doctors where user_id=%s",(uid,))
+        d_id=cur.fetchone()[0]
+        menu.doctor_menu(d_id)
       elif role=='admin':
-        menu.admin_menu()
+        menu.admin_menu(uid)
       else:
         continue
 

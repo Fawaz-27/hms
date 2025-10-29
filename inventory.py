@@ -15,6 +15,8 @@ cur.execute("""CREATE TABLE IF NOT EXISTS inventory (
 
 def view_item():
   cur.execute("select i.item_id, i.item_name, i.quantity, u.name as added_by from inventory i join users u on i.added_by = u.id")
+  data=cur.fetchall()
+  print(tabulate(data,headers=['item_id','item_name','quantity','added_by'],tablefmt="pretty"))
 
 def add_item(user_id):
   item_name = input("Enter item name : " )
