@@ -138,4 +138,3 @@ def admin_menu(admin_id):
       break
     else:
       print("Invalid choice")
-
