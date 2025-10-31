@@ -20,7 +20,7 @@ try:
               FOREIGN KEY (test_id) REFERENCES tests(test_id),
               FOREIGN KEY (p_id) REFERENCES patients(p_id))''')
   
-  def order_test(id):
+  def order_test(p_id):
     cur.execute("SELECT test_id, test_name, test_cost FROM tests")
     header = [i[0] for i in cur.description]
     data = cur.fetchall()
@@ -32,14 +32,14 @@ try:
         continue
       break
     date_today = date.today()
-    cur.execute("INSERT INTO orders (test_id, p_id, order_date) VALUES (%s, %s, %s)", (test_id, id, date_today))
+    cur.execute("INSERT INTO orders (test_id, p_id, order_date) VALUES (%s, %s, %s)", (test_id, p_id, date_today))
     conn.commit()
     print("Test ordered successfully. Wait for updates.")
 
-  def view_test(id):
+  def view_test(p_id):
     cur.execute('''SELECT o.order_id, t.test_name, t.test_cost, o.order_date, o.status,o.result
                 FROM orders o JOIN tests t ON o.test_id = t.test_id
-                where o.p_id = %s''', (id,))
+                where o.p_id = %s''', (p_id,))
     header = [i[0] for i in cur.description]
     data = cur.fetchall()
     if not data:
