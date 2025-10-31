@@ -44,8 +44,33 @@ try:
     data = cur.fetchall()
     if not data:
       print("No tests ordered yet.")
-    else:
-      print(tabulate(data, headers = header, tablefmt = 'pretty'))
+      return
+    print(tabulate(data, headers = header, tablefmt = 'pretty'))
+    print("Do you want to cancel any test order?")
+    valid_id = [i[0] for i in data]
+    while True:
+      choice = input("Enter Y to cancel or N to exit : ").lower()
+      if choice == 'n':
+        return
+      elif choice != 'n' and choice != 'y':
+        print("Invalid choice!")
+        continue
+      elif choice == 'y':
+        try:
+          choice_id = int(input("Enter Order ID to cancel : "))
+        except ValueError:
+          print("Enter a valid integer")
+          continue
+        if choice_id not in valid_id:
+          print("Invalid Order ID!")
+          continue
+        cur.execute("UPDATE orders SET status = 'cancelled' WHERE order_id = %s", (choice_id,))
+        conn.commit()
+        print("Order cancelled successfully.")
+        again = input("Do you want to cancel another order? (Y/N): ").lower()
+        if again != 'y':
+            print("Exiting...")
+            return
 
   def review_test(id):
     cur.execute('''SELECT o.order_id,o.p_id,t.test_name
